@@ -1,8 +1,36 @@
 import psutil
 import platform
 import wmi
+import ctypes
 from dataclasses import dataclass
 from typing import Optional, Dict, List
+from ctypes import windll, c_void_p, Structure, c_uint, POINTER, sizeof
+from datetime import datetime
+
+# Estruturas para DXGI
+class DXGI_ADAPTER_DESC(Structure):
+    _fields_ = [
+        ("Description", ctypes.c_wchar * 128),
+        ("VendorId", ctypes.c_uint),
+        ("DeviceId", ctypes.c_uint),
+        ("SubSysId", ctypes.c_uint),
+        ("Revision", ctypes.c_uint),
+        ("DedicatedVideoMemory", ctypes.c_size_t),
+        ("DedicatedSystemMemory", ctypes.c_size_t),
+        ("SharedSystemMemory", ctypes.c_size_t),
+        ("AdapterLuid", ctypes.c_int64)
+    ]
+
+def format_driver_date(date_str: Optional[str]) -> Optional[str]:
+    """Formata a data do driver para um formato mais legível."""
+    if not date_str:
+        return None
+    try:
+        # Converte string '20250506000000.000000-000' para datetime
+        date = datetime.strptime(date_str.split('.')[0], '%Y%m%d%H%M%S')
+        return date.strftime('%d/%m/%Y')
+    except:
+        return date_str
 
 @dataclass
 class StorageDevice:
@@ -37,16 +65,53 @@ class SystemSpecs:
     ram_speed: Optional[int] = None  # MHz
     ram_type: Optional[str] = None   # DDR4, DDR5, etc
     gpu_memory_total: Optional[int] = None  # GB
+    gpu_memory_type: Optional[str] = None   # GDDR5, GDDR6, etc
     gpu_driver: Optional[str] = None
+    gpu_driver_date: Optional[str] = None
+    gpu_resolution: Optional[str] = None     # Máxima resolução suportada
+    gpu_refresh_rate: Optional[int] = None   # Taxa de atualização máxima
+    gpu_architecture: Optional[str] = None   # Arquitetura (ex: Ampere, Ada Lovelace)
+    gpu_tech_support: Optional[Dict[str, bool]] = None  # Suporte a tecnologias (DLSS, Ray Tracing, etc)
     os_build: Optional[str] = None
     directx_version: Optional[str] = None
 
-def get_dedicated_gpu(w: wmi.WMI) -> tuple[str, Optional[int], Optional[str]]:
+def get_gpu_memory_dxgi() -> Optional[int]:
     """
-    Busca a GPU dedicada do sistema.
+    Tenta obter a memória da GPU usando DXGI.
+    """
+    try:
+        # Carrega as DLLs necessárias
+        dxgi = windll.dxgi
+        d3d11 = windll.d3d11
+
+        # Cria o device D3D
+        device = c_void_p()
+        dxgi_device = c_void_p()
+        dxgi_adapter = c_void_p()
+        adapter_desc = DXGI_ADAPTER_DESC()
+
+        # Tenta criar o device e obter o adaptador
+        if d3d11.D3D11CreateDevice(None, 0, None, 0, None, 0, 0, ctypes.byref(device), None, None) == 0:
+            device = device.value
+            device.QueryInterface(dxgi_device)
+            dxgi_device = dxgi_device.value
+            dxgi_device.GetParent(dxgi_adapter)
+            dxgi_adapter = dxgi_adapter.value
+            dxgi_adapter.GetDesc(ctypes.byref(adapter_desc))
+
+            # Converte para GB
+            memory_gb = adapter_desc.DedicatedVideoMemory / (1024**3)
+            return round(memory_gb)
+    except Exception as e:
+        print(f"Erro ao obter memória via DXGI: {e}")
+    return None
+
+def get_dedicated_gpu(w: wmi.WMI) -> tuple[str, Optional[int], Optional[str], Dict[str, any]]:
+    """
+    Busca a GPU dedicada do sistema e suas capacidades.
     
     Returns:
-        Tupla com (nome_gpu, memoria_gpu, driver)
+        Tupla com (nome_gpu, memoria_gpu, driver, detalhes_adicionais)
     """
     try:
         gpus = w.Win32_VideoController()
@@ -54,30 +119,165 @@ def get_dedicated_gpu(w: wmi.WMI) -> tuple[str, Optional[int], Optional[str]]:
         gpu_list = []
         for gpu in gpus:
             try:
-                memory = int(gpu.AdapterRAM)
                 name = gpu.Name
+                # Tenta obter a memória de diferentes formas
+                memory = None
+                
+                # 1. Tenta via DXGI primeiro
+                if "nvidia" in name.lower() or "amd" in name.lower():
+                    memory = get_gpu_memory_dxgi()
+                    print(f"DXGI Memory for {name}: {memory}GB")
+
+                # 2. Tenta AdapterRAM
+                if not memory:
+                    try:
+                        memory = int(gpu.AdapterRAM)
+                        print(f"AdapterRAM for {name}: {memory} bytes")
+                    except Exception as e:
+                        print(f"Erro AdapterRAM for {name}: {e}")
+
+                # 3. Tenta VideoMemoryType
+                if not memory:
+                    try:
+                        memory = int(gpu.VideoMemory)
+                        print(f"VideoMemory for {name}: {memory} bytes")
+                    except Exception as e:
+                        print(f"Erro VideoMemory for {name}: {e}")
+                        
+                # 4. Se não conseguiu ou o valor é inválido, define baseado no modelo
+                if not memory or memory < 0:
+                    name_lower = name.lower()
+                    if "nvidia" in name_lower:
+                        print(f"Detectando memória pelo modelo: {name}")
+                        if "4090" in name_lower:
+                            memory = 24 * 1024**3  # 24GB
+                        elif "4080" in name_lower:
+                            memory = 16 * 1024**3  # 16GB
+                        elif "4070" in name_lower:
+                            memory = 12 * 1024**3  # 12GB
+                        elif "4060" in name_lower:
+                            memory = 8 * 1024**3   # 8GB
+                        elif "4050" in name_lower:
+                            if "laptop" in name_lower:
+                                print("Definindo RTX 4050 Laptop para 6GB GDDR6")
+                                memory = 6 * 1024**3   # 6GB (laptop)
+                            else:
+                                memory = 8 * 1024**3   # 8GB (desktop)
+                    elif "amd" in name_lower or "radeon" in name_lower:
+                        if "rx 7900" in name_lower:
+                            memory = 20 * 1024**3  # 20GB
+                        elif "rx 7800" in name_lower:
+                            memory = 16 * 1024**3  # 16GB
+                        elif "rx 7700" in name_lower:
+                            memory = 12 * 1024**3  # 12GB
+                        elif "rx 7600" in name_lower:
+                            memory = 8 * 1024**3   # 8GB
+
+                print(f"Memória final para {name}: {memory/(1024**3) if memory else 'N/A'}GB")
+                
                 driver = gpu.DriverVersion
-                gpu_list.append((name, memory, driver))
-            except:
+                driver_date = format_driver_date(gpu.DriverDate)
+                
+                # Coleta informações adicionais
+                details = {
+                    'memory_type': None,
+                    'driver_date': driver_date,
+                    'resolution': f"{gpu.CurrentHorizontalResolution}x{gpu.CurrentVerticalResolution}" if gpu.CurrentHorizontalResolution else None,
+                    'refresh_rate': gpu.CurrentRefreshRate,
+                    'architecture': None,
+                    'tech_support': {
+                        'dlss': False,
+                        'ray_tracing': False,
+                        'dx12_ultimate': False,
+                        'fsr': False
+                    }
+                }
+                
+                # Detecta tipo de memória e tecnologias suportadas baseado no modelo
+                name_lower = name.lower()
+                if "nvidia" in name_lower:
+                    if "4050" in name_lower or "4060" in name_lower:
+                        details['memory_type'] = "GDDR6"
+                        details['architecture'] = "Ada Lovelace"
+                        details['tech_support'].update({
+                            'dlss': True,
+                            'ray_tracing': True,
+                            'dx12_ultimate': True
+                        })
+                    elif any(x in name_lower for x in ["4090", "4080", "4070"]):
+                        details['memory_type'] = "GDDR6X"
+                        details['architecture'] = "Ada Lovelace"
+                        details['tech_support'].update({
+                            'dlss': True,
+                            'ray_tracing': True,
+                            'dx12_ultimate': True
+                        })
+                    elif any(x in name_lower for x in ["3090", "3080"]):
+                        details['memory_type'] = "GDDR6X"
+                        details['architecture'] = "Ampere"
+                        details['tech_support'].update({
+                            'dlss': True,
+                            'ray_tracing': True,
+                            'dx12_ultimate': True
+                        })
+                    elif any(x in name_lower for x in ["3070", "3060"]):
+                        details['memory_type'] = "GDDR6"
+                        details['architecture'] = "Ampere"
+                        details['tech_support'].update({
+                            'dlss': True,
+                            'ray_tracing': True,
+                            'dx12_ultimate': True
+                        })
+                elif "amd" in name_lower or "radeon" in name_lower:
+                    if "rx 7" in name_lower:
+                        details['memory_type'] = "GDDR6"
+                        details['architecture'] = "RDNA 3"
+                        details['tech_support'].update({
+                            'ray_tracing': True,
+                            'dx12_ultimate': True,
+                            'fsr': True
+                        })
+                    elif "rx 6" in name_lower:
+                        details['memory_type'] = "GDDR6"
+                        details['architecture'] = "RDNA 2"
+                        details['tech_support'].update({
+                            'ray_tracing': True,
+                            'dx12_ultimate': True,
+                            'fsr': True
+                        })
+                
+                gpu_list.append((name, memory, driver, details))
+            except Exception as e:
+                print(f"Erro ao coletar detalhes da GPU '{name}': {e}")
                 continue
         
         # Ordena por quantidade de memória
         gpu_list.sort(key=lambda x: x[1] if x[1] else 0, reverse=True)
         
         # Procura primeiro por NVIDIA ou AMD
-        for name, memory, driver in gpu_list:
+        for name, memory, driver, details in gpu_list:
             if "nvidia" in name.lower() or "amd" in name.lower() or "radeon" in name.lower():
-                return name, round(memory / (1024**3)) if memory else None, driver
+                return (
+                    name,
+                    round(memory / (1024**3)) if memory else None,
+                    driver,
+                    details
+                )
         
         # Se não encontrou, retorna a primeira da lista
         if gpu_list:
-            name, memory, driver = gpu_list[0]
-            return name, round(memory / (1024**3)) if memory else None, driver
+            name, memory, driver, details = gpu_list[0]
+            return (
+                name,
+                round(memory / (1024**3)) if memory else None,
+                driver,
+                details
+            )
             
     except Exception as e:
         print(f"Erro ao detectar GPU: {e}")
     
-    return "GPU não detectada", None, None
+    return "GPU não detectada", None, None, {}
 
 def get_storage_devices(w: wmi.WMI) -> List[StorageDevice]:
     """
@@ -135,10 +335,10 @@ def get_cpu_stats() -> tuple[float, float, Optional[float]]:
     Returns:
         Tupla com (freq_base, freq_max, temperatura)
     """
-    # Frequências
+    # Frequências (converte MHz para GHz)
     freq = psutil.cpu_freq()
-    freq_base = round(freq.current, 2) if freq else 0
-    freq_max = round(freq.max, 2) if freq and freq.max else freq_base
+    freq_base = round(freq.current / 1000, 2) if freq else 0
+    freq_max = round((freq.max or freq.current) / 1000, 2) if freq else freq_base
     
     # Temperatura (tenta diferentes métodos)
     temp = None
@@ -198,7 +398,10 @@ def get_system_specs() -> SystemSpecs:
             ram_type = None
         
         # GPU
-        gpu_name, gpu_memory, gpu_driver = get_dedicated_gpu(w)
+        gpu_name, gpu_memory, gpu_driver, gpu_details = get_dedicated_gpu(w)
+        print(f"\nGPU Final: {gpu_name}")
+        print(f"Memória Final: {gpu_memory}GB")
+        print(f"Detalhes: {gpu_details}\n")
         
         # Storage
         storage_devices = get_storage_devices(w)
@@ -239,7 +442,13 @@ def get_system_specs() -> SystemSpecs:
             ram_speed=ram_speed,
             ram_type=ram_type,
             gpu_memory_total=gpu_memory,
+            gpu_memory_type=gpu_details.get('memory_type'),
             gpu_driver=gpu_driver,
+            gpu_driver_date=gpu_details.get('driver_date'),
+            gpu_resolution=gpu_details.get('resolution'),
+            gpu_refresh_rate=gpu_details.get('refresh_rate'),
+            gpu_architecture=gpu_details.get('architecture'),
+            gpu_tech_support=gpu_details.get('tech_support'),
             os_build=os_build,
             directx_version=directx_version
         )

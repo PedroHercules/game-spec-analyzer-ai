@@ -29,10 +29,30 @@ def print_system_specs(specs):
     
     print("\nPlaca de Vídeo:")
     print(f"  Modelo: {specs.gpu_name}")
+    if specs.gpu_architecture:
+        print(f"  Arquitetura: {specs.gpu_architecture}")
     if specs.gpu_memory_total:
-        print(f"  Memória: {specs.gpu_memory_total}GB")
+        print(f"  Memória: {specs.gpu_memory_total}GB {specs.gpu_memory_type or ''}")
     if specs.gpu_driver:
         print(f"  Driver: {specs.gpu_driver}")
+        if specs.gpu_driver_date:
+            print(f"  Data do Driver: {specs.gpu_driver_date}")
+    if specs.gpu_resolution:
+        print(f"  Resolução: {specs.gpu_resolution}")
+        if specs.gpu_refresh_rate:
+            print(f"  Taxa de Atualização: {specs.gpu_refresh_rate}Hz")
+    
+    # Mostra tecnologias suportadas
+    if specs.gpu_tech_support:
+        print("\n  Tecnologias Suportadas:")
+        if specs.gpu_tech_support.get('dlss'):
+            print("    - NVIDIA DLSS")
+        if specs.gpu_tech_support.get('ray_tracing'):
+            print("    - Ray Tracing")
+        if specs.gpu_tech_support.get('dx12_ultimate'):
+            print("    - DirectX 12 Ultimate")
+        if specs.gpu_tech_support.get('fsr'):
+            print("    - AMD FSR")
     
     print("\nArmazenamento:")
     for device in specs.storage_devices:
