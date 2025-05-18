@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Ambiente Virtual
+venv/
+env/
+.env/
+.venv/
+
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# PyCharm
+.idea/
+
+# Arquivos de configuração e logs
+*.log
+.env
+*.cfg
+config.ini
+settings.json
+
+# Arquivos temporários
+temp/
+tmp/
+.tmp/
+*.temp
+*.tmp
+
+# Arquivos de build e distribuição
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Cache e arquivos gerados
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
