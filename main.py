@@ -48,13 +48,24 @@ def print_system_specs(specs):
     if specs.directx_version:
         print(f"  DirectX: {specs.directx_version}")
 
-def print_game_requirements(requirements):
-    """Exibe os requisitos do jogo de forma formatada."""
-    print(f"\nRequisitos para '{requirements.title}':")
+def print_game_analysis(game_name):
+    """Exibe análise completa do jogo incluindo requisitos e performance."""
+    print(f"\n=== Análise de '{game_name}' ===\n")
+    
+    # Obtém requisitos
+    print("Buscando requisitos...")
+    requirements = get_requirements(game_name)
+    if not requirements:
+        print("Não foi possível encontrar os requisitos do jogo.")
+        return
+        
+    # Mostra requisitos
+    print("\nRequisitos do Jogo:")
+    print("-" * 40)
     if requirements.price:
         print(f"Preço: {requirements.price}")
         
-    print("\nRequisitos Mínimos:")
+    print("\nMínimos:")
     if not requirements.minimum:
         print("  Não disponível")
     else:
@@ -63,8 +74,8 @@ def print_game_requirements(requirements):
                 print("  Não disponível")
                 break
             print(f"  {key}: {value}")
-        
-    print("\nRequisitos Recomendados:")
+            
+    print("\nRecomendados:")
     if not requirements.recommended:
         print("  Não disponível")
     else:
@@ -73,45 +84,39 @@ def print_game_requirements(requirements):
                 print("  Não disponível")
                 break
             print(f"  {key}: {value}")
-        
+    
     print(f"\nFonte: {requirements.source_url}")
 
 def main():
     # Configura o parser de argumentos
     parser = argparse.ArgumentParser(
-        description='Analisa requisitos técnicos de jogos e especificações do sistema.',
+        description='Analisa requisitos e performance de jogos.',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
     # Grupo de subcomandos
     subparsers = parser.add_subparsers(dest='command', help='Comandos disponíveis')
     
-    # Comando: verificar jogo
-    check_parser = subparsers.add_parser('check', help='Verifica requisitos de um jogo')
-    check_parser.add_argument(
+    # Comando: analisar jogo
+    analyze_parser = subparsers.add_parser('analyze', help='Análise completa de um jogo')
+    analyze_parser.add_argument(
         'game',
         help='Nome do jogo para análise',
         type=str,
         nargs='+'
     )
     
-    # Comando: mostrar specs
+    # Comando: verificar specs
     specs_parser = subparsers.add_parser('specs', help='Mostra especificações do sistema')
     
     # Parse os argumentos
     args = parser.parse_args()
     
     try:
-        if args.command == 'check':
-            # Verifica requisitos do jogo
+        if args.command == 'analyze':
+            # Análise completa do jogo
             game_name = ' '.join(args.game)
-            print("\nIniciando análise dos requisitos...")
-            requirements = get_requirements(game_name)
-            
-            if requirements:
-                print_game_requirements(requirements)
-            else:
-                print(f"\nNão foi possível encontrar requisitos para '{game_name}'.")
+            print_game_analysis(game_name)
                 
         elif args.command == 'specs':
             # Mostra especificações do sistema

@@ -4,33 +4,19 @@ Sistema automatizado para análise de compatibilidade e performance de jogos usa
 
 ## Sobre o Projeto
 
-O projeto coleta dados detalhados para alimentar uma IA que analisará:
+O projeto coleta e analisa:
 
-- Compatibilidade de jogos com o hardware
-- Performance esperada (FPS)
-- Possíveis gargalos
-- Recomendações de configurações
-- Sugestões de upgrade
+1. **Especificações do Sistema**
 
-### Dados Coletados
+   - Hardware detalhado (CPU, GPU, RAM, Storage)
+   - Métricas em tempo real (temperaturas, uso)
+   - Drivers e versões do sistema
 
-1. **Hardware:**
+2. **Requisitos dos Jogos**
 
-   - **CPU**: modelo, cores, threads, frequências, temperatura, uso
-   - **GPU**: modelo (dedicada ou integrada), memória, drivers
-   - **RAM**: quantidade, velocidade, tipo (DDR4/DDR5)
-   - **Storage**: tipo (SSD/HDD/NVMe), espaço, velocidades
-
-2. **Sistema:**
-
-   - Sistema Operacional e build
-   - Versão do DirectX
-   - Drivers e atualizações
-
-3. **Jogos:**
    - Requisitos mínimos e recomendados
-   - Performance reportada por usuários
-   - Configurações sugeridas
+   - Compatibilidade com diferentes sistemas
+   - Preço e disponibilidade
 
 ## Instalação
 
@@ -43,88 +29,78 @@ pip install -r requirements.txt
 
 ## Uso
 
-### Analisar Requisitos de um Jogo:
+### 1. Análise Completa de um Jogo:
 
 ```bash
-python main.py check "Nome do Jogo"
+python main.py analyze "Nome do Jogo"
 ```
 
 Exemplo:
 
 ```bash
-python main.py check "God of War"
+python main.py analyze "God of War"
 ```
 
-### Verificar Especificações do Sistema:
+Isso mostrará:
+
+- Requisitos do jogo
+- Compatibilidade com o sistema
+
+### 2. Verificar Especificações do Sistema:
 
 ```bash
 python main.py specs
 ```
 
-### Exemplo de Saída:
+Mostra informações detalhadas sobre:
 
-```
-=== Análise do Sistema ===
-
-Processador:
-  Modelo: AMD Ryzen 7 5800X
-  Núcleos: 8 físicos, 16 threads
-  Frequência: 3.8GHz (Base) / 4.7GHz (Max)
-  Temperatura: 65°C
-  Uso: 25%
-
-Memória RAM:
-  Total: 32GB
-  Em uso: 12GB
-  Disponível: 20GB
-  Velocidade: 3200MHz
-  Tipo: DDR4
-
-Placa de Vídeo:
-  Modelo: NVIDIA GeForce RTX 3070
-  Memória: 8GB GDDR6
-  Driver: 531.41
-
-Armazenamento:
-  Tipo: NVMe SSD
-  Total: 1000GB
-  Livre: 450GB
-  Em uso: 550GB
-
-Sistema:
-  Windows 11 Pro (22H2)
-  DirectX 12
-```
+- Processador
+- Placa de vídeo
+- Memória RAM
+- Armazenamento
+- Sistema operacional
 
 ## Estrutura do Projeto
 
 ```
 src/
   ├── services/
-  │   ├── get_requirements.py    # Coleta requisitos de jogos
-  │   └── get_system_specs.py    # Coleta specs do sistema
+  │   ├── get_requirements.py    # Requisitos dos jogos
+  │   └── get_system_specs.py    # Specs do sistema
   └── shared/
-      └── scraping/             # Funcionalidade de scraping
+      └── scraping/
+          ├── game_system_requirements.py
+          └── browser_scraper.py
+```
+
+## Exemplo de Saída
+
+### Análise de Jogo
+
+```
+=== Análise de 'Cyberpunk 2077' ===
+
+Requisitos do Jogo:
+----------------------------------------
+Preço: R$ 199,90
+
+Mínimos:
+  OS: Windows 10
+  CPU: Intel Core i5-3570K
+  RAM: 8 GB
+  GPU: NVIDIA GeForce GTX 970
+  Storage: 70 GB
+
+Recomendados:
+  OS: Windows 10
+  CPU: Intel Core i7-4790
+  RAM: 16 GB
+  GPU: NVIDIA GeForce GTX 1060 6GB
+  Storage: 70 GB
 ```
 
 ## Próximos Passos
 
-1. Integração com IA para:
-
-   - Análise de compatibilidade
-   - Previsão de performance
-   - Recomendações personalizadas
-   - Benchmarks comparativos
-
-2. Coleta de dados adicionais:
-
-   - Benchmarks em tempo real
-   - Métricas de temperatura
-   - Uso de VRAM
-   - Performance em diferentes resoluções
-
-3. Base de conhecimento:
-   - Padrões de performance
-   - Problemas comuns
-   - Soluções recomendadas
-   - Histórico de atualizações
+1. Análise detalhada de compatibilidade
+2. Recomendações personalizadas por jogo
+3. API para consulta externa
