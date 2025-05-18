@@ -1,6 +1,36 @@
 # Game System Requirements Analyzer
 
-Sistema automatizado para análise de requisitos técnicos de jogos e especificações do sistema.
+Sistema automatizado para análise de compatibilidade e performance de jogos usando IA.
+
+## Sobre o Projeto
+
+O projeto coleta dados detalhados para alimentar uma IA que analisará:
+
+- Compatibilidade de jogos com o hardware
+- Performance esperada (FPS)
+- Possíveis gargalos
+- Recomendações de configurações
+- Sugestões de upgrade
+
+### Dados Coletados
+
+1. **Hardware:**
+
+   - **CPU**: modelo, cores, threads, frequências, temperatura, uso
+   - **GPU**: modelo (dedicada ou integrada), memória, drivers
+   - **RAM**: quantidade, velocidade, tipo (DDR4/DDR5)
+   - **Storage**: tipo (SSD/HDD/NVMe), espaço, velocidades
+
+2. **Sistema:**
+
+   - Sistema Operacional e build
+   - Versão do DirectX
+   - Drivers e atualizações
+
+3. **Jogos:**
+   - Requisitos mínimos e recomendados
+   - Performance reportada por usuários
+   - Configurações sugeridas
 
 ## Instalação
 
@@ -13,99 +43,88 @@ pip install -r requirements.txt
 
 ## Uso
 
-O sistema possui dois comandos principais:
-
-### 1. Verificar requisitos de um jogo:
+### Analisar Requisitos de um Jogo:
 
 ```bash
 python main.py check "Nome do Jogo"
 ```
 
-Por exemplo:
+Exemplo:
 
 ```bash
 python main.py check "God of War"
-python main.py check "Half-Life 2"
-python main.py check "Cyberpunk 2077"
 ```
 
-### 2. Verificar especificações do seu sistema:
+### Verificar Especificações do Sistema:
 
 ```bash
 python main.py specs
 ```
 
-Isso mostrará informações detalhadas sobre:
+### Exemplo de Saída:
 
-- Processador (modelo, núcleos, frequência)
-- Memória RAM (total, disponível, velocidade)
-- Placa de Vídeo (modelo, memória, driver)
-- Armazenamento (espaço total e livre)
-- Sistema Operacional e DirectX
+```
+=== Análise do Sistema ===
+
+Processador:
+  Modelo: AMD Ryzen 7 5800X
+  Núcleos: 8 físicos, 16 threads
+  Frequência: 3.8GHz (Base) / 4.7GHz (Max)
+  Temperatura: 65°C
+  Uso: 25%
+
+Memória RAM:
+  Total: 32GB
+  Em uso: 12GB
+  Disponível: 20GB
+  Velocidade: 3200MHz
+  Tipo: DDR4
+
+Placa de Vídeo:
+  Modelo: NVIDIA GeForce RTX 3070
+  Memória: 8GB GDDR6
+  Driver: 531.41
+
+Armazenamento:
+  Tipo: NVMe SSD
+  Total: 1000GB
+  Livre: 450GB
+  Em uso: 550GB
+
+Sistema:
+  Windows 11 Pro (22H2)
+  DirectX 12
+```
 
 ## Estrutura do Projeto
 
 ```
 src/
-  ├── services/                   # Serviços da aplicação
+  ├── services/
   │   ├── get_requirements.py    # Coleta requisitos de jogos
   │   └── get_system_specs.py    # Coleta specs do sistema
-  └── shared/                    # Código compartilhado
+  └── shared/
       └── scraping/             # Funcionalidade de scraping
-          ├── __init__.py
-          └── game_system_requirements.py
 ```
 
-## Exemplo de Saída
+## Próximos Passos
 
-### Verificando um Jogo
+1. Integração com IA para:
 
-```
-Iniciando análise dos requisitos...
+   - Análise de compatibilidade
+   - Previsão de performance
+   - Recomendações personalizadas
+   - Benchmarks comparativos
 
-Requisitos para 'Half-Life 2':
-Preço: R$ 20,69
+2. Coleta de dados adicionais:
 
-Requisitos Mínimos:
-  OS: Windows 7, Vista, XP
-  Processor: 1.7 Ghz
-  Memory: 512 MB RAM
-  Graphics: DirectX 8.1 level Graphics Card
-  Storage: 6.5 GB available space
+   - Benchmarks em tempo real
+   - Métricas de temperatura
+   - Uso de VRAM
+   - Performance em diferentes resoluções
 
-Requisitos Recomendados:
-  OS: Windows 7
-  Processor: 2.4 Ghz
-  Memory: 1 GB RAM
-  Graphics: DirectX 9 level Graphics Card
-  Storage: 6.5 GB available space
-```
-
-### Verificando o Sistema
-
-```
-Especificações do Sistema:
-
-Processador:
-  Modelo: Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz
-  Núcleos: 8 físicos, 8 threads
-  Frequência: 3.6GHz (Base) / 4.9GHz (Max)
-
-Memória RAM:
-  Total: 32GB
-  Disponível: 24GB
-  Velocidade: 3200MHz
-
-Placa de Vídeo:
-  Modelo: NVIDIA GeForce RTX 3070
-  Memória: 8GB
-  Driver: 531.41
-
-Armazenamento:
-  Espaço Total: 1000GB
-  Espaço Livre: 450GB
-
-Sistema:
-  Sistema Operacional: Windows 11 (10.0.22621)
-  DirectX: DirectX 12
-```
+3. Base de conhecimento:
+   - Padrões de performance
+   - Problemas comuns
+   - Soluções recomendadas
+   - Histórico de atualizações
