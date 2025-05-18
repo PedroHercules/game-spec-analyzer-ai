@@ -1,106 +1,185 @@
 # Game System Requirements Analyzer
 
-Sistema automatizado para análise de compatibilidade e performance de jogos usando IA.
+An automated system for analyzing game compatibility and performance using AI.
 
-## Sobre o Projeto
+## About
 
-O projeto coleta e analisa:
+This project collects and analyzes:
 
-1. **Especificações do Sistema**
+1. **System Specifications**
 
-   - Hardware detalhado (CPU, GPU, RAM, Storage)
-   - Métricas em tempo real (temperaturas, uso)
-   - Drivers e versões do sistema
+   - Detailed hardware information (CPU, GPU, RAM, Storage)
+   - Real-time metrics (temperatures, usage)
+   - System drivers and versions
 
-2. **Requisitos dos Jogos**
+2. **Game Requirements**
 
-   - Requisitos mínimos e recomendados
-   - Compatibilidade com diferentes sistemas
-   - Preço e disponibilidade
+   - Minimum and recommended requirements
+   - System compatibility
+   - Price and availability
+   - Performance benchmarks
 
-## Instalação
+3. **AI-Powered Analysis**
+   - Compatibility assessment
+   - Performance predictions
+   - Smart recommendations
 
-1. Clone o repositório
-2. Instale as dependências:
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/game-spec-analyzer-ia.git
+cd game-spec-analyzer-ia
+```
+
+2. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Uso
+3. Configure environment:
+   - Copy `.env.example` to `.env`
+   - Set your OpenRouter API credentials:
+     ```
+     OPENROUTER_API_KEY=your_api_key_here
+     OPENROUTER_MODEL=your_model_here  # e.g., openai/gpt-3.5-turbo
+     ```
 
-### 1. Análise Completa de um Jogo:
+## Usage
+
+### 1. Complete Game Analysis:
 
 ```bash
-python main.py analyze "Nome do Jogo"
+python main.py analyze "Game Name"
 ```
 
-Exemplo:
+Example:
 
 ```bash
 python main.py analyze "God of War"
 ```
 
-Isso mostrará:
+This will display:
 
-- Requisitos do jogo
-- Compatibilidade com o sistema
+- Game requirements
+- System compatibility
+- Performance predictions
+- Smart recommendations
 
-### 2. Verificar Especificações do Sistema:
+### 2. Check System Specifications:
 
 ```bash
 python main.py specs
 ```
 
-Mostra informações detalhadas sobre:
+Shows detailed information about:
 
-- Processador
-- Placa de vídeo
-- Memória RAM
-- Armazenamento
-- Sistema operacional
+- Processor
+- Graphics card
+- RAM
+- Storage
+- Operating system
 
-## Estrutura do Projeto
+### 3. Game Performance Analysis:
+
+```bash
+python main.py performance "Game Name"
+```
+
+Provides:
+
+- Expected FPS ranges
+- Recommended settings
+- Performance bottlenecks
+
+## Project Structure
 
 ```
 src/
-  ├── services/
-  │   ├── get_requirements.py    # Requisitos dos jogos
-  │   └── get_system_specs.py    # Specs do sistema
-  └── shared/
-      └── scraping/
-          ├── game_system_requirements.py
-          └── browser_scraper.py
+├── services/
+│   ├── analyze_game_compatibility.py
+│   ├── get_game_performance.py
+│   ├── get_requirements.py
+│   └── get_system_specs.py
+└── shared/
+    ├── providers/
+    │   └── llm_provider.py
+    └── scraping/
+        ├── base_scraper.py
+        ├── browser_scraper.py
+        ├── game_benchmarks.py
+        ├── game_system_requirements.py
+        ├── google_scraper.py
+        └── human_like_scraper.py
 ```
 
-## Exemplo de Saída
+## Example Output
 
-### Análise de Jogo
+### Game Analysis
 
 ```
-=== Análise de 'Cyberpunk 2077' ===
+=== Analysis of 'Cyberpunk 2077' ===
 
-Requisitos do Jogo:
+Game Requirements:
 ----------------------------------------
-Preço: R$ 199,90
+Price: $59.99
 
-Mínimos:
+Minimum:
   OS: Windows 10
   CPU: Intel Core i5-3570K
   RAM: 8 GB
   GPU: NVIDIA GeForce GTX 970
   Storage: 70 GB
 
-Recomendados:
+Recommended:
   OS: Windows 10
   CPU: Intel Core i7-4790
   RAM: 16 GB
   GPU: NVIDIA GeForce GTX 1060 6GB
   Storage: 70 GB
+
+Compatibility Analysis:
+----------------------------------------
+System Score: 8.5/10
+- CPU: Exceeds recommended (✓)
+- GPU: Meets recommended (✓)
+- RAM: Exceeds minimum (!)
+- Storage: Available (✓)
+
+Performance Prediction:
+----------------------------------------
+Expected FPS (1080p, High Settings): 55-65
+Recommended Settings:
+- Resolution: 1080p
+- Texture Quality: High
+- Ray Tracing: Off
+- DLSS: Quality
 ```
 
-## Próximos Passos
+## Dependencies
 
-1. Análise detalhada de compatibilidade
-2. Recomendações personalizadas por jogo
-3. API para consulta externa
+- **Web Scraping**
+
+  - selenium >= 4.1.0
+  - webdriver-manager >= 3.8.0
+  - beautifulsoup4 >= 4.9.3
+  - lxml >= 4.9.0
+
+- **System & Hardware**
+
+  - psutil >= 5.9.0
+  - wmi >= 1.5.1
+
+- **Utilities**
+  - requests >= 2.28.0
+  - python-dotenv >= 0.19.0
+
+## Features in Development
+
+1. Detailed performance analytics
+2. Multi-game comparison
+3. Historical performance tracking
+4. Game settings optimization
+5. External API for remote queries
