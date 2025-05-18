@@ -1,6 +1,7 @@
 import argparse
 from src.services.get_requirements import get_requirements
 from src.services.get_system_specs import get_system_specs
+from src.services.analyze_game_compatibility import analyze_game_compatibility
 
 def print_system_specs(specs):
     """Exibe as especificações do sistema de forma formatada para análise."""
@@ -49,7 +50,7 @@ def print_system_specs(specs):
         print(f"  DirectX: {specs.directx_version}")
 
 def print_game_analysis(game_name):
-    """Exibe análise completa do jogo incluindo requisitos e performance."""
+    """Exibe análise completa do jogo incluindo requisitos e compatibilidade."""
     print(f"\n=== Análise de '{game_name}' ===\n")
     
     # Obtém requisitos
@@ -58,8 +59,39 @@ def print_game_analysis(game_name):
     if not requirements:
         print("Não foi possível encontrar os requisitos do jogo.")
         return
+    
+    # Obtém especificações do sistema
+    print("\nAnalisando sistema...")
+    specs = get_system_specs()
+    
+    # Realiza análise de compatibilidade
+    print("\nAnalisando compatibilidade...")
+    try:
+        analysis = analyze_game_compatibility(specs, requirements)
         
-    # Mostra requisitos
+        # Mostra resultado da análise
+        print("\n=== Resultado da Análise ===")
+        print("-" * 40)
+        print(f"Pode rodar o jogo? {'Sim' if analysis.can_run else 'Não'}")
+        print(f"Performance esperada: {analysis.performance_level}")
+        
+        if analysis.expected_issues:
+            print("\nPossíveis problemas:")
+            for issue in analysis.expected_issues:
+                print(f"  - {issue}")
+        
+        if analysis.recommended_settings:
+            print("\nConfigurações recomendadas:")
+            print(f"  {analysis.recommended_settings}")
+        
+        if analysis.upgrade_suggestions:
+            print("\nSugestões de upgrade:")
+            for suggestion in analysis.upgrade_suggestions:
+                print(f"  - {suggestion}")
+    except Exception as e:
+        print(f"\nErro ao analisar compatibilidade: {str(e)}")
+    
+    # Mostra requisitos detalhados
     print("\nRequisitos do Jogo:")
     print("-" * 40)
     if requirements.price:
