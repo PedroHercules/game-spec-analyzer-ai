@@ -80,12 +80,33 @@ def print_game_analysis(game_name):
             for issue in analysis.expected_issues:
                 print(f"  - {issue}")
         
-        if analysis.recommended_settings:
-            print("\nConfigurações recomendadas:")
-            print(f"  {analysis.recommended_settings}")
+        print("\nAnálise Detalhada:")
+        print("-" * 40)
+        print("\nProcessador:")
+        print(analysis.performance_details.cpu_analysis)
+        
+        print("\nPlaca de Vídeo:")
+        print(analysis.performance_details.gpu_analysis)
+        
+        print("\nMemória RAM:")
+        print(analysis.performance_details.ram_analysis)
+        
+        print("\nArmazenamento:")
+        print(analysis.performance_details.storage_impact)
+        
+        print("\nEstimativas de FPS:")
+        for resolution, fps in analysis.performance_details.estimated_fps.items():
+            print(f"\n  {resolution}:")
+            print(f"    Baixa: {fps.baixa}")
+            print(f"    Média: {fps.media}")
+            print(f"    Alta: {fps.alta}")
+            print(f"    Ultra: {fps.ultra}")
+        
+        print("\nConfigurações Recomendadas:")
+        print(analysis.recommended_settings)
         
         if analysis.upgrade_suggestions:
-            print("\nSugestões de upgrade:")
+            print("\nSugestões de Upgrade:")
             for suggestion in analysis.upgrade_suggestions:
                 print(f"  - {suggestion}")
     except Exception as e:
